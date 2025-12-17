@@ -41,7 +41,12 @@ const freshScene = new FreshScene();
   fresh: freshScene,
 };
 
-const switchToRunningScene = () => {
+const switchToRunningScene = async () => {
+  // Ensure loaded before switching
+  if (!runningScene.loaded) {
+      console.log('⏳ Waiting for RunningScene to finish loading...');
+      await runningScene.load(); 
+  }
   currentScene.hide();
   currentScene = runningScene;
   currentScene.initialize();
@@ -63,7 +68,11 @@ const switchToCharacterSelectionScene = () => {
   currentScene.initialize();
 };
 
-const switchToFreshScene = () => {
+const switchToFreshScene = async () => {
+  if (!freshScene.loaded) {
+      console.log('⏳ Waiting for FreshScene to finish loading...');
+      await freshScene.load();
+  }
   currentScene.hide();
   currentScene = freshScene;
   currentScene.initialize();
@@ -175,11 +184,15 @@ window.addEventListener('returnToMainMenu', () => {
 });
 
 const main = async () => {
-  await runningScene.load();
+  // 1. Load Main Menu (Critical)
   await mainMenuScene.load();
-  await characterSelectionScene.load();
-  await freshScene.load();
+  
+  // 2. Start loading others in background (Non-blocking)
+  runningScene.load();
+  characterSelectionScene.load();
+  freshScene.load();
 
+  // 3. Hide Loader immediately
   (document.querySelector('.loading-container') as HTMLInputElement).style.display = 'none';
   currentScene.initialize();
   render();

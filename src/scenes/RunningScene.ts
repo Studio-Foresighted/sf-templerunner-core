@@ -245,8 +245,8 @@ export default class RunningScene extends Scene {
         const clip = group.animations[0];
         
         // Log tracks before cleaning
-        console.log(`🧹 Cleaning animation: ${clip.name}`);
-        clip.tracks.forEach((t: any) => console.log(`   - Track: ${t.name}`));
+        // console.log(`🧹 Cleaning animation: ${clip.name}`);
+        // clip.tracks.forEach((t: any) => console.log(`   - Track: ${t.name}`));
 
         clip.tracks = clip.tracks.filter((t: any) =>
           !t.name.endsWith('.position') || t.name.toLowerCase().includes('hips') || t.name.toLowerCase().includes('root')
@@ -938,6 +938,8 @@ export default class RunningScene extends Scene {
   }
 
   public warmUp(renderer: WebGLRenderer, camera: PerspectiveCamera) {
+    if (!this.loaded) return;
+
     // Temporarily make characters visible for shader compilation
     this.charactersContainer.forEach(c => c.visible = true);
     
