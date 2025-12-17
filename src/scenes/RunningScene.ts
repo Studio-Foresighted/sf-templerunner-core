@@ -1430,6 +1430,10 @@ export default class RunningScene extends Scene {
     // Reset states
     this.isGameOver = false;
     this.isGamePaused = false;
+    this.clock.start();
+    this.speed = 220;
+    this.isPlayerHeadStart = false;
+    
     (document.querySelector('.disable-touch') as HTMLInputElement).style.display = 'none';
     
     // Load settings from localStorage

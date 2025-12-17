@@ -411,6 +411,9 @@ export default class FreshScene extends Scene {
     this.currentX = 0;
     if (this.activeCharacter) this.activeCharacter.position.x = 0;
 
+    // Start Generation
+    this.obstacleManager.isGenerating = true;
+
     // Input Listeners
     window.addEventListener('keydown', this.handleInput);
   }
@@ -877,20 +880,6 @@ export default class FreshScene extends Scene {
       
       // Reset Obstacles
       this.obstacleManager.reset();
-      // Ensure generation is OFF if we are leaving, or reset to default state?
-      // Usually we want it ready for next time. 
-      // If we leave, we should probably stop generation so it doesn't run in background if scene persists?
-      // But `update` won't run if scene is hidden/not updated.
-      // Let's just ensure it's in a clean state.
-      if (this.obstacleManager.isGenerating) {
-          this.obstacleManager.toggleGeneration(); // Turn off
-      }
-      // Actually, we want it ON for next start? 
-      // initialize() calls load() which doesn't start generation explicitly.
-      // Usually generation starts automatically or via some trigger.
-      // In FreshScene, generation is toggled via 'y'. 
-      // Wait, `FreshObstacleManager` starts with `isGenerating = false`?
-      // Let's check FreshObstacleManager.
       
       // Reset UI
       const playHud = document.getElementById('play-hud');
