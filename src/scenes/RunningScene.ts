@@ -1,7 +1,7 @@
 /* eslint-disable linebreak-style */
 import {
   Scene, DirectionalLight, AmbientLight, Object3D, AnimationMixer, AnimationAction, Clock,
-  Box3, Group, BoxGeometry, MeshPhongMaterial, Mesh, Vector3, Color, TextureLoader, SRGBColorSpace, MeshBasicMaterial, RepeatWrapping, MeshStandardMaterial, LoopOnce, LoopRepeat, BoxHelper, Box3Helper, AnimationClip, WebGLRenderer, PerspectiveCamera,
+  Box3, Group, BoxGeometry, MeshPhongMaterial, Mesh, Vector3, Color, TextureLoader, SRGBColorSpace, MeshBasicMaterial, RepeatWrapping, MeshStandardMaterial, LoopOnce, LoopRepeat, BoxHelper, Box3Helper, AnimationClip, WebGLRenderer, PerspectiveCamera, WebGLRenderTarget,
 } from 'three';
 
 import { FBXLoader } from 'three/examples/jsm/loaders/FBXLoader.js';
@@ -940,8 +940,19 @@ export default class RunningScene extends Scene {
   public warmUp(renderer: WebGLRenderer, camera: PerspectiveCamera) {
     // Temporarily make characters visible for shader compilation
     this.charactersContainer.forEach(c => c.visible = true);
-    renderer.compile(this, camera);
+    
+    // Force full render to offscreen target to ensure textures are uploaded to GPU
+    const renderTarget = new WebGLRenderTarget(128, 128); // Small target
+    const originalTarget = renderer.getRenderTarget();
+    
+    renderer.setRenderTarget(renderTarget);
+    renderer.render(this, camera);
+    renderer.setRenderTarget(originalTarget);
+    
+    renderTarget.dispose();
+    
     this.charactersContainer.forEach(c => c.visible = false);
+    console.log('🔥 [RunningScene] WarmUp complete (GPU Upload forced)');
   }
 
 

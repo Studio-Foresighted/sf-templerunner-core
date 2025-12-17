@@ -130,10 +130,27 @@ const exitFullscreenSafe = () => {
 };
 
 currentScene = mainMenuScene;
+
+let hasWarmedUp = false;
+let warmUpFrame = 0;
+
 const render = (time: number = 0) => {
   currentScene.update();
   // TWEEN.update(time); // Moved to scene update for better control
   renderer.render(currentScene, mainCamera);
+
+  // Background loading: Warm up the running scene while on the main menu
+  if (currentScene === mainMenuScene && !hasWarmedUp) {
+    warmUpFrame++;
+    // Wait ~30 frames (0.5s) to let the menu transition finish smoothly
+    if (warmUpFrame === 30) {
+      console.log('⏳ Triggering background warm-up for RunningScene...');
+      // This might cause a slight stutter, but it prevents the pop-in later
+      runningScene.warmUp(renderer, mainCamera);
+      hasWarmedUp = true;
+    }
+  }
+
   requestAnimationFrame(render);
 };
 
@@ -160,9 +177,6 @@ const main = async () => {
   await runningScene.load();
   await mainMenuScene.load();
   await characterSelectionScene.load();
-
-  // Pre-compile shaders to avoid pop-in delay
-  runningScene.warmUp(renderer, mainCamera);
 
   (document.querySelector('.loading-container') as HTMLInputElement).style.display = 'none';
   currentScene.initialize();
