@@ -130,7 +130,7 @@ const exitFullscreenSafe = () => {
 };
 
 currentScene = mainMenuScene;
-const render = (time: number) => {
+const render = (time: number = 0) => {
   currentScene.update();
   // TWEEN.update(time); // Moved to scene update for better control
   renderer.render(currentScene, mainCamera);
