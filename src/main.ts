@@ -160,6 +160,10 @@ const main = async () => {
   await runningScene.load();
   await mainMenuScene.load();
   await characterSelectionScene.load();
+
+  // Pre-compile shaders to avoid pop-in delay
+  runningScene.warmUp(renderer, mainCamera);
+
   (document.querySelector('.loading-container') as HTMLInputElement).style.display = 'none';
   currentScene.initialize();
   render();

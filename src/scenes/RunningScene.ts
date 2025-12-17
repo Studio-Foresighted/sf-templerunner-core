@@ -1,7 +1,7 @@
 /* eslint-disable linebreak-style */
 import {
   Scene, DirectionalLight, AmbientLight, Object3D, AnimationMixer, AnimationAction, Clock,
-  Box3, Group, BoxGeometry, MeshPhongMaterial, Mesh, Vector3, Color, TextureLoader, SRGBColorSpace, MeshBasicMaterial, RepeatWrapping, MeshStandardMaterial, LoopOnce, LoopRepeat, BoxHelper, Box3Helper, AnimationClip,
+  Box3, Group, BoxGeometry, MeshPhongMaterial, Mesh, Vector3, Color, TextureLoader, SRGBColorSpace, MeshBasicMaterial, RepeatWrapping, MeshStandardMaterial, LoopOnce, LoopRepeat, BoxHelper, Box3Helper, AnimationClip, WebGLRenderer, PerspectiveCamera,
 } from 'three';
 
 import { FBXLoader } from 'three/examples/jsm/loaders/FBXLoader.js';
@@ -935,6 +935,13 @@ export default class RunningScene extends Scene {
       this.jolleenStumbleAnimation,
       this.peasantGirlStumbleAnimation,
     );
+  }
+
+  public warmUp(renderer: WebGLRenderer, camera: PerspectiveCamera) {
+    // Temporarily make characters visible for shader compilation
+    this.charactersContainer.forEach(c => c.visible = true);
+    renderer.compile(this, camera);
+    this.charactersContainer.forEach(c => c.visible = false);
   }
 
 
