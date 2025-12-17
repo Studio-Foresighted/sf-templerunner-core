@@ -1,0 +1,17 @@
+{
+  "roles": {
+    "run": "run",
+    "jump": "jump",
+    "slide": "slide",
+    "stumble": "stumble"
+  },
+  "orientation": {
+    "rotationX": 0,
+    "rotationY": 3.232,
+    "rotationZ": 0.12,
+    "scale": 0.1,
+    "positionY": -35,
+    "modelLocalY": 90,
+    "autoGround": false
+  }
+}

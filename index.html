@@ -1,0 +1,792 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <link rel="icon" type="image/svg+xml" href="favicon.svg" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <link rel="stylesheet" href="./src/style.css" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" />
+  <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/toastify-js/src/toastify.min.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <title>Artworx Runner - NEO FLASH 2189</title>
+</head>
+
+<body>
+  <!-- Neon Background Elements -->
+  <div class="neon-background">
+    <div class="neon-orb neon-orb-1"></div>
+    <div class="neon-orb neon-orb-2"></div>
+    <div class="neon-orb neon-orb-3"></div>
+    <div class="grid-overlay"></div>
+  </div>
+
+  <!-- Start Screen Stats (Top Right) -->
+  <div id="start-screen-stats" class="absolute top-4 right-4 md:top-8 md:right-8 z-50 flex gap-4 md:gap-8 pointer-events-none">
+    <div class="group transition-transform duration-300 hover:scale-110 pointer-events-auto">
+      <div class="font-mono text-[10px] md:text-xs text-cyan-400/50 group-hover:text-cyan-400/80">TOTAL CREDITS</div>
+      <div class="font-mono text-xl md:text-3xl font-bold text-cyan-400 drop-shadow-[0_0_15px_rgba(34,211,238,0.5)]" id="total-coins-display">
+        0
+      </div>
+    </div>
+    <div class="group transition-transform duration-300 hover:scale-110 pointer-events-auto">
+      <div class="font-mono text-[10px] md:text-xs text-pink-500/50 group-hover:text-pink-500/80">HIGH SCORE</div>
+      <div class="font-mono text-xl md:text-3xl font-bold text-pink-500 drop-shadow-[0_0_15px_rgba(236,72,153,0.5)]" id="high-score-display">
+        0
+      </div>
+    </div>
+  </div>
+
+  <!-- Play HUD (Hidden by default) -->
+  <div id="play-hud" class="hidden absolute inset-0 pointer-events-none z-50">
+    <!-- Top Bar -->
+    <div class="absolute left-0 right-0 top-0 flex items-start justify-between p-2 md:p-8">
+      
+      <!-- Left - Player info -->
+      <div class="animate-in slide-in-from-left duration-700 pointer-events-auto flex items-center gap-2 md:gap-6">
+        <!-- Avatar (Hidden on small mobile) -->
+        <div class="relative hidden sm:block">
+          <div class="h-12 w-12 md:h-16 md:w-16 border-2 border-cyan-400 bg-cyan-400/10 shadow-[0_0_20px_rgba(34,211,238,0.4)]">
+            <div class="flex h-full items-center justify-center font-mono text-xl md:text-2xl text-cyan-400">NK</div>
+          </div>
+          <div class="absolute -bottom-1 -right-1 h-3 w-3 md:h-4 md:w-4 rounded-full bg-green-400 shadow-[0_0_10px_rgba(74,222,128,0.8)]"></div>
+        </div>
+
+        <!-- Name & Timer -->
+        <div>
+          <div class="font-mono text-[10px] md:text-xs text-cyan-400/50 hidden sm:block">RUNNER ID</div>
+          <div class="font-mono text-sm md:text-2xl font-bold text-cyan-400 drop-shadow-[0_0_10px_rgba(34,211,238,0.5)] hidden sm:block" id="runner-id-display">
+            NK-7743
+          </div>
+          <div class="mt-1 font-mono text-lg md:text-3xl font-bold text-pink-500" id="timer-display">00:00</div>
+        </div>
+      </div>
+
+      <!-- Center objective -->
+      <div class="absolute left-1/2 top-2 md:top-8 -translate-x-1/2 animate-in fade-in slide-in-from-top duration-700 delay-300 pointer-events-auto">
+        <div class="border border-pink-500/30 bg-black/60 px-4 py-2 md:px-6 md:py-3 backdrop-blur-sm">
+          <div class="text-center">
+            <div class="font-mono text-[10px] md:text-xs text-pink-500/70">OBJECTIVE: RUN</div>
+            <div class="mt-1 font-mono text-xl md:text-4xl font-bold text-cyan-400" id="meters-display">0 M</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Right - Stats & Buttons -->
+      <div class="text-right animate-in slide-in-from-right duration-700 pointer-events-auto flex flex-col items-end gap-4">
+        <div class="flex gap-4 md:gap-8">
+          <!-- Credits -->
+          <div class="group cursor-pointer transition-transform duration-300 hover:scale-110">
+            <div class="font-mono text-[10px] md:text-xs text-cyan-400/50 group-hover:text-cyan-400/80" id="hud-coin-label">CREDITS</div>
+            <div class="font-mono text-xl md:text-3xl font-bold text-cyan-400 drop-shadow-[0_0_15px_rgba(34,211,238,0.5)] coins-count">
+              0
+            </div>
+          </div>
+
+          <!-- Score -->
+          <div class="group cursor-pointer transition-transform duration-300 hover:scale-110">
+            <div class="font-mono text-[10px] md:text-xs text-pink-500/50 group-hover:text-pink-500/80" id="hud-score-label">SCORE</div>
+            <div class="font-mono text-xl md:text-3xl font-bold text-pink-500 drop-shadow-[0_0_15px_rgba(236,72,153,0.5)] scores-count">
+              0
+            </div>
+          </div>
+        </div>
+        
+        <!-- Pause/Fullscreen Buttons -->
+        <div class="flex gap-4 items-center">
+          <button class="w-10 h-10 md:w-14 md:h-14 flex items-center justify-center bg-black/60 border border-cyan-400/30 text-cyan-400 hover:bg-cyan-400/20 hover:shadow-[0_0_15px_rgba(34,211,238,0.4)] transition-all duration-300 rounded-sm" id="exit-fullscreen-button" style="display: none;">
+            <i class="fa-solid fa-compress text-lg md:text-2xl"></i>
+          </button>
+          <button class="w-10 h-10 md:w-14 md:h-14 flex items-center justify-center bg-black/60 border border-cyan-400/30 text-cyan-400 hover:bg-cyan-400/20 hover:shadow-[0_0_15px_rgba(34,211,238,0.4)] transition-all duration-300 rounded-sm" id="pause-game-button">
+            <i class="fa-solid fa-pause text-lg md:text-2xl"></i>
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Pause Button (Removed old container) -->
+  <!-- <div class="pause-button"> ... </div> -->
+
+  <!-- demo-debug-container removed -->
+
+  <div id="game-paused-modal" class="modal">
+    <div class="modal-body" id="">
+      <!-- <div class="scanline-overlay"></div> -->
+      <div class="modal-corner modal-corner-tl"></div>
+      <div class="modal-corner modal-corner-tr"></div>
+      <div class="modal-corner modal-corner-bl"></div>
+      <div class="modal-corner modal-corner-br"></div>
+      <h1>SYSTEM PAUSED</h1>
+      <button class="btn" id="resume-button">
+        <span class="btn-icon"><i class="fa-solid fa-play"></i></span>
+        RESUME</button>
+      <button class="btn" id="quit-button">
+        <span class="btn-icon"><i class="fa-solid fa-door-open"></i></span>
+        EXIT</button>
+    </div>
+  </div>
+
+  <div id="game-over-modal" class="modal">
+    <div class="modal-body" id="game-over-modal">
+      <div class="scanline-overlay"></div>
+      <div class="modal-corner modal-corner-tl"></div>
+      <div class="modal-corner modal-corner-tr"></div>
+      <div class="modal-corner modal-corner-bl"></div>
+      <div class="modal-corner modal-corner-br"></div>
+      <h1>SYSTEM FAILURE</h1>
+      <div class="stats-grid">
+        <div class="stat-item">
+          <span class="stat-label">FINAL SCORE</span>
+          <span class="stat-value" id="current-score">0</span>
+        </div>
+        <div class="stat-item">
+          <span class="stat-label">COINS COLLECTED</span>
+          <span class="stat-value" id="current-coins">0</span>
+        </div>
+      </div>
+      <button class="btn" id="restart-button">
+        <span class="btn-icon"><i class="fa-solid fa-rotate"></i></span>
+        REBOOT
+      </button>
+      <button class="btn" id="game-over-quit-button">
+        <span class="btn-icon"><i class="fa-solid fa-power-off"></i></span>
+        SHUTDOWN
+      </button>
+    </div>
+  </div>
+
+  <!-- Main menu  -->
+  <section id="main-menu-buttons">
+    <div class="neon-title-container">
+      <h1 class="loading-title"><span class="text-red">ARTWORX</span><span class="text-yellow">RUNNER</span></h1>
+      <p class="loading-subtitle" style="color: white;">NEO FLASH 2189</p>
+    </div>
+    
+    <!-- Texture Thumbnails -->
+    <div id="texture-thumbnails" class="texture-thumbnails-container">
+        <!-- Populated by JS -->
+    </div>
+
+    <div class="menu-buttons-grid">
+      <!-- <button id="play-game-button" class="btn btn-primary">
+        <span class="btn-icon"><i class="fa-solid fa-play"></i></span>
+        <span class="btn-text">INITIALIZE</span>
+      </button> -->
+      <!-- <button id="demo-game-button" class="btn btn-secondary">
+        <span class="btn-icon"><i class="fa-solid fa-vial"></i></span>
+        <span class="btn-text">TEST MODE</span>
+      </button> -->
+      <button id="fresh-mode-button" class="btn btn-primary hidden md:flex">
+        <span class="btn-icon"><i class="fa-solid fa-play"></i></span>
+        <span class="btn-text">START</span>
+      </button>
+      <!-- <button class="btn btn-secondary" id="Characters-selection-button">
+        <span class="btn-icon"><i class="fa-solid fa-user-astronaut"></i></span>
+        <span class="btn-text">AVATARS</span>
+      </button> -->
+      <!-- <button class="btn btn-secondary" id="about-button">
+        <span class="btn-icon"><i class="fa-solid fa-sliders"></i></span>
+        <span class="btn-text">CONFIG</span>
+      </button> -->
+    </div>
+  </section>
+
+  <div class="auth-button" style="display: none;">
+    <!-- <button class="btn-icon-only">
+      <span class="btn-icon"><i class="fa-solid fa-user-plus"></i></span>
+    </button> -->
+  </div>
+
+  <button id="sign-out-button" class="btn">
+    <span class="btn-icon"><i class="fa-solid fa-arrow-right-from-bracket"></i></span> Sign out
+  </button>
+
+  <h3 id="greetings">Hello, <span id="username"></span> 😉
+  </h3>
+  <button id="score-board-button" class="btn">
+    <span class="btn-icon"><i class="fa-solid fa-crown"></i></span> High Scores
+  </button>
+
+  <!--Character Selection Section -->
+  <div class="home-menu">
+    <button class="btn-icon-only">
+      <span class="btn-icon"><i class="fa-solid fa-home"></i></span>
+    </button>
+  </div>
+  <div id="character-selection-container">
+    <h1 class="character-name">Character Name</h1>
+    <section class="character-selection-buttons">
+      <button class="btn" id="prev-btn">
+        <span class="btn-icon"><i class="fa-solid fa-angles-left"></i></span>
+        Prev
+      </button>
+      <div>
+        <button class="btn" id="select-character-btn">
+          <span class="btn-icon"><i class="fa-solid fa-check"></i></span>
+          <span id="select-button-text">Select</span>
+        </button>
+        <button class="btn" id="character-price-button">
+          <span class="btn-icon"> <i class="fa-solid fa-coins"></i> </span> <span id="character-price-text">
+            10,000</span>
+        </button>
+      </div>
+      <button class="btn-two" id="next-btn">
+        Next <span class="btn-icon"><i class="fa-solid fa-angles-right"></i></span>
+      </button>
+    </section>
+  </div>
+
+  <!-- Coins and Highscores section (Legacy - Removed) -->
+
+
+  <!-- Sign up modal -->
+  <div id="sign-up-modal" class="modal">
+    <div class="modal-body">
+      <div class="form">
+        <h2 class="close" id="close-signup-form"><span><i class="fa-solid fa-times"></i></span></h2>
+        <h2>Sign Up</h2>
+        <p>username:</p>
+        <input id="signup-username-text" type="text" value="">
+        <p>password:</p>
+        <input id="signup-password-text" type="password" value="">
+        <p>Repeat password:</p>
+        <input id="signup-repeat-password-text" type="password" value="">
+        <p>Rep Your Country:</p>
+        <select id="country" name="country">
+          <option value="NG">Nigeria</option>
+          <option value="AF">Afghanistan</option>
+          <option value="AX">Aland Islands</option>
+          <option value="AL">Albania</option>
+          <option value="DZ">Algeria</option>
+          <option value="AS">American Samoa</option>
+          <option value="AD">Andorra</option>
+          <option value="AO">Angola</option>
+          <option value="AI">Anguilla</option>
+          <option value="AQ">Antarctica</option>
+          <option value="AG">Antigua and Barbuda</option>
+          <option value="AR">Argentina</option>
+          <option value="AM">Armenia</option>
+          <option value="AW">Aruba</option>
+          <option value="AU">Australia</option>
+          <option value="AT">Austria</option>
+          <option value="AZ">Azerbaijan</option>
+          <option value="BS">Bahamas</option>
+          <option value="BH">Bahrain</option>
+          <option value="BD">Bangladesh</option>
+          <option value="BB">Barbados</option>
+          <option value="BY">Belarus</option>
+          <option value="BE">Belgium</option>
+          <option value="BZ">Belize</option>
+          <option value="BJ">Benin</option>
+          <option value="BM">Bermuda</option>
+          <option value="BT">Bhutan</option>
+          <option value="BO">Bolivia</option>
+          <option value="BQ">Bonaire, Sint Eustatius and Saba</option>
+          <option value="BA">Bosnia and Herzegovina</option>
+          <option value="BW">Botswana</option>
+          <option value="BV">Bouvet Island</option>
+          <option value="BR">Brazil</option>
+          <option value="IO">British Indian Ocean Territory</option>
+          <option value="BN">Brunei Darussalam</option>
+          <option value="BG">Bulgaria</option>
+          <option value="BF">Burkina Faso</option>
+          <option value="BI">Burundi</option>
+          <option value="KH">Cambodia</option>
+          <option value="CM">Cameroon</option>
+          <option value="CA">Canada</option>
+          <option value="CV">Cape Verde</option>
+          <option value="KY">Cayman Islands</option>
+          <option value="CF">Central African Republic</option>
+          <option value="TD">Chad</option>
+          <option value="CL">Chile</option>
+          <option value="CN">China</option>
+          <option value="CX">Christmas Island</option>
+          <option value="CC">Cocos (Keeling) Islands</option>
+          <option value="CO">Colombia</option>
+          <option value="KM">Comoros</option>
+          <option value="CG">Congo</option>
+          <option value="CD">Congo, Democratic Republic of the Congo</option>
+          <option value="CK">Cook Islands</option>
+          <option value="CR">Costa Rica</option>
+          <option value="CI">Cote D'Ivoire</option>
+          <option value="HR">Croatia</option>
+          <option value="CU">Cuba</option>
+          <option value="CW">Curacao</option>
+          <option value="CY">Cyprus</option>
+          <option value="CZ">Czech Republic</option>
+          <option value="DK">Denmark</option>
+          <option value="DJ">Djibouti</option>
+          <option value="DM">Dominica</option>
+          <option value="DO">Dominican Republic</option>
+          <option value="EC">Ecuador</option>
+          <option value="EG">Egypt</option>
+          <option value="SV">El Salvador</option>
+          <option value="GQ">Equatorial Guinea</option>
+          <option value="ER">Eritrea</option>
+          <option value="EE">Estonia</option>
+          <option value="ET">Ethiopia</option>
+          <option value="FK">Falkland Islands (Malvinas)</option>
+          <option value="FO">Faroe Islands</option>
+          <option value="FJ">Fiji</option>
+          <option value="FI">Finland</option>
+          <option value="FR">France</option>
+          <option value="GF">French Guiana</option>
+          <option value="PF">French Polynesia</option>
+          <option value="TF">French Southern Territories</option>
+          <option value="GA">Gabon</option>
+          <option value="GM">Gambia</option>
+          <option value="GE">Georgia</option>
+          <option value="DE">Germany</option>
+          <option value="GH">Ghana</option>
+          <option value="GI">Gibraltar</option>
+          <option value="GR">Greece</option>
+          <option value="GL">Greenland</option>
+          <option value="GD">Grenada</option>
+          <option value="GP">Guadeloupe</option>
+          <option value="GU">Guam</option>
+          <option value="GT">Guatemala</option>
+          <option value="GG">Guernsey</option>
+          <option value="GN">Guinea</option>
+          <option value="GW">Guinea-Bissau</option>
+          <option value="GY">Guyana</option>
+          <option value="HT">Haiti</option>
+          <option value="HM">Heard Island and Mcdonald Islands</option>
+          <option value="VA">Holy See (Vatican City State)</option>
+          <option value="HN">Honduras</option>
+          <option value="HK">Hong Kong</option>
+          <option value="HU">Hungary</option>
+          <option value="IS">Iceland</option>
+          <option value="IN">India</option>
+          <option value="ID">Indonesia</option>
+          <option value="IR">Iran, Islamic Republic of</option>
+          <option value="IQ">Iraq</option>
+          <option value="IE">Ireland</option>
+          <option value="IM">Isle of Man</option>
+          <option value="IL">Israel</option>
+          <option value="IT">Italy</option>
+          <option value="JM">Jamaica</option>
+          <option value="JP">Japan</option>
+          <option value="JE">Jersey</option>
+          <option value="JO">Jordan</option>
+          <option value="KZ">Kazakhstan</option>
+          <option value="KE">Kenya</option>
+          <option value="KI">Kiribati</option>
+          <option value="KP">Korea, Democratic People's Republic of</option>
+          <option value="KR">Korea, Republic of</option>
+          <option value="XK">Kosovo</option>
+          <option value="KW">Kuwait</option>
+          <option value="KG">Kyrgyzstan</option>
+          <option value="LA">Lao People's Democratic Republic</option>
+          <option value="LV">Latvia</option>
+          <option value="LB">Lebanon</option>
+          <option value="LS">Lesotho</option>
+          <option value="LR">Liberia</option>
+          <option value="LY">Libyan Arab Jamahiriya</option>
+          <option value="LI">Liechtenstein</option>
+          <option value="LT">Lithuania</option>
+          <option value="LU">Luxembourg</option>
+          <option value="MO">Macao</option>
+          <option value="MK">Macedonia, the Former Yugoslav Republic of</option>
+          <option value="MG">Madagascar</option>
+          <option value="MW">Malawi</option>
+          <option value="MY">Malaysia</option>
+          <option value="MV">Maldives</option>
+          <option value="ML">Mali</option>
+          <option value="MT">Malta</option>
+          <option value="MH">Marshall Islands</option>
+          <option value="MQ">Martinique</option>
+          <option value="MR">Mauritania</option>
+          <option value="MU">Mauritius</option>
+          <option value="YT">Mayotte</option>
+          <option value="MX">Mexico</option>
+          <option value="FM">Micronesia, Federated States of</option>
+          <option value="MD">Moldova, Republic of</option>
+          <option value="MC">Monaco</option>
+          <option value="MN">Mongolia</option>
+          <option value="ME">Montenegro</option>
+          <option value="MS">Montserrat</option>
+          <option value="MA">Morocco</option>
+          <option value="MZ">Mozambique</option>
+          <option value="MM">Myanmar</option>
+          <option value="NA">Namibia</option>
+          <option value="NR">Nauru</option>
+          <option value="NP">Nepal</option>
+          <option value="NL">Netherlands</option>
+          <option value="AN">Netherlands Antilles</option>
+          <option value="NC">New Caledonia</option>
+          <option value="NZ">New Zealand</option>
+          <option value="NI">Nicaragua</option>
+          <option value="NE">Niger</option>
+          <option value="NU">Niue</option>
+          <option value="NF">Norfolk Island</option>
+          <option value="MP">Northern Mariana Islands</option>
+          <option value="NO">Norway</option>
+          <option value="OM">Oman</option>
+          <option value="PK">Pakistan</option>
+          <option value="PW">Palau</option>
+          <option value="PS">Palestinian Territory, Occupied</option>
+          <option value="PA">Panama</option>
+          <option value="PG">Papua New Guinea</option>
+          <option value="PY">Paraguay</option>
+          <option value="PE">Peru</option>
+          <option value="PH">Philippines</option>
+          <option value="PN">Pitcairn</option>
+          <option value="PL">Poland</option>
+          <option value="PT">Portugal</option>
+          <option value="PR">Puerto Rico</option>
+          <option value="QA">Qatar</option>
+          <option value="RE">Reunion</option>
+          <option value="RO">Romania</option>
+          <option value="RU">Russian Federation</option>
+          <option value="RW">Rwanda</option>
+          <option value="BL">Saint Barthelemy</option>
+          <option value="SH">Saint Helena</option>
+          <option value="KN">Saint Kitts and Nevis</option>
+          <option value="LC">Saint Lucia</option>
+          <option value="MF">Saint Martin</option>
+          <option value="PM">Saint Pierre and Miquelon</option>
+          <option value="VC">Saint Vincent and the Grenadines</option>
+          <option value="WS">Samoa</option>
+          <option value="SM">San Marino</option>
+          <option value="ST">Sao Tome and Principe</option>
+          <option value="SA">Saudi Arabia</option>
+          <option value="SN">Senegal</option>
+          <option value="RS">Serbia</option>
+          <option value="CS">Serbia and Montenegro</option>
+          <option value="SC">Seychelles</option>
+          <option value="SL">Sierra Leone</option>
+          <option value="SG">Singapore</option>
+          <option value="SX">Sint Maarten</option>
+          <option value="SK">Slovakia</option>
+          <option value="SI">Slovenia</option>
+          <option value="SB">Solomon Islands</option>
+          <option value="SO">Somalia</option>
+          <option value="ZA">South Africa</option>
+          <option value="GS">South Georgia and the South Sandwich Islands</option>
+          <option value="SS">South Sudan</option>
+          <option value="ES">Spain</option>
+          <option value="LK">Sri Lanka</option>
+          <option value="SD">Sudan</option>
+          <option value="SR">Suriname</option>
+          <option value="SJ">Svalbard and Jan Mayen</option>
+          <option value="SZ">Swaziland</option>
+          <option value="SE">Sweden</option>
+          <option value="CH">Switzerland</option>
+          <option value="SY">Syrian Arab Republic</option>
+          <option value="TW">Taiwan, Province of China</option>
+          <option value="TJ">Tajikistan</option>
+          <option value="TZ">Tanzania, United Republic of</option>
+          <option value="TH">Thailand</option>
+          <option value="TL">Timor-Leste</option>
+          <option value="TG">Togo</option>
+          <option value="TK">Tokelau</option>
+          <option value="TO">Tonga</option>
+          <option value="TT">Trinidad and Tobago</option>
+          <option value="TN">Tunisia</option>
+          <option value="TR">Turkey</option>
+          <option value="TM">Turkmenistan</option>
+          <option value="TC">Turks and Caicos Islands</option>
+          <option value="TV">Tuvalu</option>
+          <option value="UG">Uganda</option>
+          <option value="UA">Ukraine</option>
+          <option value="AE">United Arab Emirates</option>
+          <option value="GB">United Kingdom</option>
+          <option value="US">United States</option>
+          <option value="UM">United States Minor Outlying Islands</option>
+          <option value="UY">Uruguay</option>
+          <option value="UZ">Uzbekistan</option>
+          <option value="VU">Vanuatu</option>
+          <option value="VE">Venezuela</option>
+          <option value="VN">Viet Nam</option>
+          <option value="VG">Virgin Islands, British</option>
+          <option value="VI">Virgin Islands, U.s.</option>
+          <option value="WF">Wallis and Futuna</option>
+          <option value="EH">Western Sahara</option>
+          <option value="YE">Yemen</option>
+          <option value="ZM">Zambia</option>
+          <option value="ZW">Zimbabwe</option>
+        </select>
+        <p>Already have an account?<button id="sign-in-button" class="btn"><span class="btn-icon"><i
+                class="fa-solid fa-arrow-right-to-bracket"></i></span> Sign in</button></p>
+        <button id="register-button" class="btn">Register</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Sign in modal -->
+  <div id="sign-in-modal" class="modal">
+    <div class="modal-body">
+      <div class="form">
+        <h2 id="close-signin-form" class="close"><span><i class="fa-solid fa-times"></i></span></h2>
+        <h2>Sign In</h2>
+        <input id="signin-username-text" type="text" value="username"><br />
+        <input id="signin-password-text" type="password" value="password">
+        <p>Don't have an account?<button id="sign-up-button" class="btn"><span class="btn-icon"><i
+                class="fa-solid fa-user-plus"></i></span> Sign up</button></p>
+        <button id="login-button" class="btn">Login</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- high-scores modal -->
+  <div id="high-scores-modal" class="modal">
+    <div class="modal-body">
+      <h2 class="close" id="close-highscores-modal"><span><i class="fa-solid fa-times"></i></span></h2>
+      <h3>Top 10 Runners</h3>
+      <table id="rank-table">
+        <tr>
+          <th>Rank</th>
+          <th>Name</th>
+          <th>Scores</th>
+          <th>Country</th>
+          </tr>
+          
+      </table>
+    </div>
+  </div>
+
+  <!-- Settings modal -->
+  <div id="about-modal" class="modal">
+    <div class="modal-body">
+      <div class="about-content">
+        <h2>Settings</h2>
+        <div class="setting-item">
+          <label for="texture-selector">Cave Texture:</label>
+          <select id="texture-selector" class="texture-dropdown">
+            <option value="cyberpunk-metal-2.jpeg">Cyberpunk Metal 2</option>
+          </select>
+        </div>
+        <div class="setting-item">
+          <label for="texture-repeat-slider">Texture Repeat: <span id="texture-repeat-value">8</span></label>
+          <input type="range" id="texture-repeat-slider" min="5" max="25" value="8" step="0.5">
+        </div>
+        <div class="setting-item">
+          <label for="jump-height-slider">Jump Height: <span id="jump-height-value">80</span></label>
+          <input type="range" id="jump-height-slider" min="30" max="150" value="80" step="5">
+        </div>
+        <div class="setting-item">
+          <label for="jump-speed-up-slider">Jump Speed Up: <span id="jump-speed-up-value">1.5</span></label>
+          <input type="range" id="jump-speed-up-slider" min="0.5" max="3.0" value="1.5" step="0.1">
+        </div>
+        <div class="setting-item">
+          <label for="jump-speed-down-slider">Jump Speed Down: <span id="jump-speed-down-value">2.0</span></label>
+          <input type="range" id="jump-speed-down-slider" min="1.0" max="5.0" value="2.0" step="0.1">
+        </div>
+        <br>
+        <button class="btn" id="close-about-btn">
+          <span class="btn-icon"><i class="fa-solid fa-times"></i></span>
+          Close
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Character Select Panel -->
+  <div id="character-select-ui" style="display: none; position: absolute; top: 100px; left: 10px; background: rgba(0,0,0,0.7); padding: 15px; border-radius: 8px; color: white; z-index: 1000; width: 250px;">
+    <h3>Character Select</h3>
+    <select id="char-select-dropdown" style="width: 100%; margin-bottom: 10px; color: black; padding: 5px;">
+        <option value="">Select Character...</option>
+    </select>
+    <button id="load-char-btn" class="btn" style="width: 100%; margin-top: 5px;">Load Character</button>
+  </div>
+
+  <!-- Demo Mode UI -->
+  <div id="demo-ui" style="display: none; position: absolute; top: 150px; left: 10px; background: rgba(0,0,0,0.8); padding: 15px; border-radius: 8px; color: white; z-index: 1000; width: 280px; max-height: 70vh; overflow-y: auto; border: 1px solid #444; box-shadow: 0 0 10px rgba(0,0,0,0.5);">
+    <style>
+        #demo-ui input[type="number"], #demo-ui input[type="text"], #demo-ui select {
+            color: white !important;
+            background: #333 !important;
+            border: 1px solid #555 !important;
+            padding: 4px;
+            border-radius: 4px;
+        }
+        #demo-ui input[type="range"] {
+            accent-color: cyan;
+        }
+        /* Custom Scrollbar */
+        #demo-ui::-webkit-scrollbar {
+            width: 8px;
+        }
+        #demo-ui::-webkit-scrollbar-track {
+            background: #222; 
+        }
+        #demo-ui::-webkit-scrollbar-thumb {
+            background: #555; 
+            border-radius: 4px;
+        }
+        #demo-ui::-webkit-scrollbar-thumb:hover {
+            background: #777; 
+        }
+    </style>
+    <h3 style="margin-top: 0; color: cyan; border-bottom: 1px solid #555; padding-bottom: 5px;">Demo Settings</h3>
+    
+    <!-- Jump Section -->
+    <div class="collapsible-section" style="margin-bottom: 10px; display: none;">
+        <button class="collapsible-btn" id="jump-settings-btn" style="width: 100%; text-align: left; background: #444; border: none; color: white; padding: 5px; cursor: pointer;">Jump Settings ▼</button>
+        <div class="collapsible-content" id="jump-settings-content" style="display: block; padding: 5px; background: rgba(255,255,255,0.1);">
+            <div class="setting-item" style="margin: 5px 0;">
+              <label for="demo-jump-height">Height:</label>
+              <input type="number" id="demo-jump-height" value="80" style="width: 60px; padding: 5px; color: black;">
+            </div>
+            <div class="setting-item" style="margin: 5px 0;">
+              <label for="demo-jump-speed-up">Speed Up:</label>
+              <input type="number" id="demo-jump-speed-up" value="1.5" step="0.1" style="width: 60px; padding: 5px; color: black;">
+            </div>
+            <div class="setting-item" style="margin: 5px 0;">
+              <label for="demo-jump-speed-down">Speed Down:</label>
+              <input type="number" id="demo-jump-speed-down" value="2.0" step="0.1" style="width: 60px; padding: 5px; color: black;">
+            </div>
+        </div>
+    </div>
+
+    <!-- Character Tweaks Section -->
+    <div class="collapsible-section" style="margin-bottom: 10px;">
+        <button class="collapsible-btn" id="char-tweaks-btn" style="width: 100%; text-align: left; background: #444; border: none; color: white; padding: 5px; cursor: pointer;">Character Tweaks ▼</button>
+        <div class="collapsible-content" id="char-tweaks-content" style="display: none; padding: 5px; background: rgba(255,255,255,0.1);">
+            
+            <h4 style="margin: 5px 0; font-size: 0.9em; color: cyan;">Container (Plane)</h4>
+            <div class="setting-item" style="margin: 5px 0;">
+                <label>X:</label>
+                <input type="number" id="plane-pos-x-input" value="0" step="1" style="width: 60px; color: white; background: #333; border: 1px solid #555;">
+            </div>
+            <div class="setting-item" style="margin: 5px 0;">
+                <label>Y (Ground):</label>
+                <input type="number" id="plane-pos-y-input" value="0" step="1" style="width: 60px; color: white; background: #333; border: 1px solid #555;">
+            </div>
+            <div class="setting-item" style="margin: 5px 0;">
+                <label>Z:</label>
+                <input type="number" id="plane-pos-z-input" value="0" step="1" style="width: 60px; color: white; background: #333; border: 1px solid #555;">
+            </div>
+
+            <h4 style="margin: 10px 0 5px 0; font-size: 0.9em; color: yellow;">Hitbox (Wireframe)</h4>
+            <div class="setting-item" style="margin: 5px 0;">
+                <label>Pos X:</label>
+                <input type="number" id="hitbox-pos-x-input" value="0" step="1" style="width: 60px; color: white; background: #333; border: 1px solid #555;">
+            </div>
+            <div class="setting-item" style="margin: 5px 0;">
+                <label>Pos Y:</label>
+                <input type="number" id="hitbox-pos-y-input" value="90" step="1" style="width: 60px; color: white; background: #333; border: 1px solid #555;">
+            </div>
+            <div class="setting-item" style="margin: 5px 0;">
+                <label>Pos Z:</label>
+                <input type="number" id="hitbox-pos-z-input" value="0" step="1" style="width: 60px; color: white; background: #333; border: 1px solid #555;">
+            </div>
+            <div class="setting-item" style="margin: 5px 0;">
+                <label>Width (X):</label>
+                <input type="number" id="hitbox-scale-x-input" value="50" step="1" style="width: 60px; color: white; background: #333; border: 1px solid #555;">
+            </div>
+            <div class="setting-item" style="margin: 5px 0;">
+                <label>Height (Y):</label>
+                <input type="number" id="hitbox-scale-y-input" value="200" step="1" style="width: 60px; color: white; background: #333; border: 1px solid #555;">
+            </div>
+            <div class="setting-item" style="margin: 5px 0;">
+                <label>Depth (Z):</label>
+                <input type="number" id="hitbox-scale-z-input" value="20" step="1" style="width: 60px; color: white; background: #333; border: 1px solid #555;">
+            </div>
+
+            <h4 style="margin: 10px 0 5px 0; font-size: 0.9em; color: magenta;">Model (Visuals)</h4>
+            <div class="setting-item" style="margin: 5px 0;">
+                <label>Pos X:</label>
+                <input type="number" id="model-pos-x-input" value="0" step="1" style="width: 60px; color: white; background: #333; border: 1px solid #555;">
+            </div>
+            <div class="setting-item" style="margin: 5px 0;">
+                <label>Pos Y:</label>
+                <input type="number" id="model-y-input" value="0" step="1" style="width: 60px; color: white; background: #333; border: 1px solid #555;">
+            </div>
+            <div class="setting-item" style="margin: 5px 0;">
+                <label>Pos Z:</label>
+                <input type="number" id="model-pos-z-input" value="0" step="1" style="width: 60px; color: white; background: #333; border: 1px solid #555;">
+            </div>
+            <div class="setting-item" style="margin: 5px 0;">
+                <label>Tilt (X):</label>
+                <input type="number" id="model-tilt-input" value="0" step="1" style="width: 60px; color: white; background: #333; border: 1px solid #555;">
+            </div>
+            <div class="setting-item" style="margin: 5px 0;">
+                <label>Spin (Y):</label>
+                <input type="number" id="model-spin-input" value="0" step="1" style="width: 60px; color: white; background: #333; border: 1px solid #555;">
+            </div>
+        </div>
+    </div>
+
+    <!-- Character Select Section -->
+    <div class="collapsible-section" style="margin-bottom: 10px;">
+        <button class="collapsible-btn" id="char-select-btn" style="width: 100%; text-align: left; background: #444; border: none; color: white; padding: 5px; cursor: pointer;">Character Select ▼</button>
+        <div class="collapsible-content" id="char-select-content" style="display: none; padding: 5px; background: rgba(255,255,255,0.1);">
+            <div class="setting-item" style="margin: 5px 0;">
+                <select id="char-select-dropdown" style="width: 100%; padding: 5px; color: black;">
+                    <option value="">Select Character...</option>
+                </select>
+            </div>
+            <button id="load-char-btn" style="width: 100%; padding: 5px; background: #00bcd4; color: white; border: none; cursor: pointer; margin-top: 5px;">Load Character</button>
+        </div>
+    </div>
+    
+    <h3 style="margin-top: 15px; border-top: 1px solid #555; padding-top: 5px;">Anim Config</h3>
+    <div id="anim-config-container">
+        <!-- Populated by JS -->
+    </div>
+  </div>
+
+  <!-- Backup game options modal -->
+  <div id="backup-modal" class="modal">
+    <div class="modal-body">
+      <div class="backup-content">
+        <h2>Game Data Conflicts</h2>
+        <p>We observed that your backed up game data is not the same as the data on your device. </p>
+        <p>What do you want to do?</p>
+        <button class="btn" id="restore-online-backup-btn"> Restore my online backup and overwrite my local
+          data.</button>
+        <button class="btn" id="overwrite-online-backup-btn"> Overwrite my online backup with the game data saved on
+          this device</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Loading game container -->
+  <div class="loading-container">
+    <div class="scanline-overlay"></div>
+    <!-- Corner Decorations -->
+    <div class="corner-deco corner-tl"></div>
+    <div class="corner-deco corner-tr"></div>
+    <div class="corner-deco corner-bl"></div>
+    <div class="corner-deco corner-br"></div>
+
+    <div class="loading-content">
+      <h1 class="loading-title"><span class="text-red">ARTWORX</span><span class="text-yellow">RUNNER</span></h1>
+      <p class="loading-subtitle" style="color: white;">NEO FLASH 2189</p>
+      
+      <div class="loading-bar-wrapper">
+        <div class="custom-loading-bar-container">
+          <div class="custom-loading-bar-fill" id="loading-bar-fill">
+            <div class="custom-loading-bar-glow"></div>
+          </div>
+        </div>
+        
+        <div class="loading-info">
+          <span class="loading-status">INITIALIZING SYSTEMS</span>
+          <span class="loading-percentage">0%</span>
+        </div>
+      </div>
+
+      <div class="system-checks" id="system-checks">
+        <!-- Checks will be added here via JS -->
+      </div>
+    </div>
+  </div>
+  <div class="disable-touch"></div>
+  <div class="auto-save-loader fa-2x"><i class="fas fa-spinner fa-spin"></i></div>
+
+  <!-- Game's canvas -->
+  <canvas id="app"> </canvas>
+
+  <script type="module" src="/src/main.ts"></script>
+
+</body>
+
+</html>

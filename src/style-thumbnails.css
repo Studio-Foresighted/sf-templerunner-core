@@ -1,0 +1,35 @@
+
+/* Texture Thumbnails */
+.texture-thumbnails-container {
+  display: flex;
+  justify-content: center;
+  gap: 15px;
+  margin-bottom: 20px;
+  flex-wrap: wrap;
+  z-index: 10;
+  position: relative;
+}
+
+.texture-thumb {
+  width: 60px;
+  height: 60px;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  background-size: cover;
+  background-position: center;
+  box-shadow: 0 4px 6px rgba(0,0,0,0.3);
+}
+
+.texture-thumb:hover {
+  transform: scale(1.1);
+  border-color: #FFD100;
+  box-shadow: 0 0 10px rgba(255, 209, 0, 0.5);
+}
+
+.texture-thumb.active {
+  border-color: #C8102E;
+  box-shadow: 0 0 15px #C8102E, inset 0 0 10px rgba(200, 16, 46, 0.5);
+  transform: scale(1.1);
+}

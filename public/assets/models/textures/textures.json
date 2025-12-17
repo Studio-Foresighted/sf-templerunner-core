@@ -1,0 +1,21 @@
+{
+  "textures": [
+    {
+      "name": "Cyberpunk Metal 3",
+      "file": "cyberpunk-metal-3.jpeg",
+      "default": true
+    },
+    {
+      "name": "Cyberpunk Metal 2",
+      "file": "cyberpunk-metal-2.jpeg"
+    },
+    {
+      "name": "Cyberpunk Metal",
+      "file": "cyberpunk-metal.jpeg"
+    },
+    {
+      "name": "Wood Cave",
+      "file": "malik-skydsgaard-ylGcmefqE_I-unsplash.jpg"
+    }
+  ]
+}
