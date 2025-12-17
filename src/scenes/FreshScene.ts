@@ -1,6 +1,6 @@
 /* eslint-disable class-methods-use-this */
 import {
-  Scene, Object3D, AmbientLight, DirectionalLight, Clock, AnimationMixer, AnimationAction, TextureLoader, SRGBColorSpace, RepeatWrapping, MeshStandardMaterial, Box3, Box3Helper, Vector3, Color, MeshBasicMaterial, ShaderMaterial, BackSide, AdditiveBlending, BufferGeometry, Float32BufferAttribute, Points, PointsMaterial, CatmullRomCurve3, TubeGeometry, Mesh, DoubleSide, SkinnedMesh, Skeleton, AnimationClip, LoopOnce
+  Scene, Object3D, AmbientLight, DirectionalLight, Clock, AnimationMixer, AnimationAction, TextureLoader, SRGBColorSpace, RepeatWrapping, MeshStandardMaterial, Box3, Box3Helper, Vector3, Color, MeshBasicMaterial, ShaderMaterial, BackSide, AdditiveBlending, BufferGeometry, Float32BufferAttribute, Points, PointsMaterial, CatmullRomCurve3, TubeGeometry, Mesh, DoubleSide, SkinnedMesh, Skeleton, AnimationClip, LoopOnce, WebGLRenderer, PerspectiveCamera, WebGLRenderTarget
 } from 'three';
 
 import { FBXLoader } from 'three/examples/jsm/loaders/FBXLoader.js';
@@ -106,6 +106,14 @@ export default class FreshScene extends Scene {
     // 1. Load Environment (Cave)
     // Reuse texture logic from MainMenu or just load default
     let selectedTexture = localStorage.getItem('selectedCaveTexture') || 'cyberpunk-metal-3.jpeg';
+    
+    // Fix for old/broken texture references
+    if (selectedTexture.includes('unsplash') || selectedTexture.includes('malik')) {
+        console.warn('⚠️ [FreshScene] Detected broken texture reference, resetting to default.');
+        selectedTexture = 'wooden-1.jpg';
+        localStorage.setItem('selectedCaveTexture', selectedTexture);
+    }
+
     const textureLoader = new TextureLoader();
     const caveTexture = await textureLoader.loadAsync(`./assets/models/textures/${selectedTexture}`);
     caveTexture.colorSpace = SRGBColorSpace;
@@ -298,9 +306,34 @@ export default class FreshScene extends Scene {
     (this as any).hitboxHelper = helper;
   }
 
+  public warmUp(renderer: WebGLRenderer, camera: PerspectiveCamera) {
+    if (!this.loaded) return;
+    
+    // Temporarily make everything visible
+    const wasVisible = this.visible;
+    this.visible = true;
+    if (this.activeCharacter) this.activeCharacter.visible = true;
+    
+    // Force full render to offscreen target
+    const renderTarget = new WebGLRenderTarget(128, 128);
+    const originalTarget = renderer.getRenderTarget();
+    
+    renderer.setRenderTarget(renderTarget);
+    renderer.render(this, camera);
+    renderer.setRenderTarget(originalTarget);
+    
+    renderTarget.dispose();
+    
+    // Restore state
+    this.visible = wasVisible;
+    if (!wasVisible && this.activeCharacter) this.activeCharacter.visible = false;
+    
+    console.log('🔥 [FreshScene] WarmUp complete (GPU Upload forced)');
+  }
+
   initialize() {
     console.log('✨ [FreshScene] Initializing Fresh Mode');
-    this.load();
+    // this.load(); // Now called in main.ts
 
     // Hide Main Menu UI
     const menuUI = document.querySelector('.main-menu-container') as HTMLElement;

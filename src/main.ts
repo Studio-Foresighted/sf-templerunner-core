@@ -144,9 +144,10 @@ const render = (time: number = 0) => {
     warmUpFrame++;
     // Wait ~30 frames (0.5s) to let the menu transition finish smoothly
     if (warmUpFrame === 30) {
-      console.log('⏳ Triggering background warm-up for RunningScene...');
+      console.log('⏳ Triggering background warm-up for RunningScene & FreshScene...');
       // This might cause a slight stutter, but it prevents the pop-in later
       runningScene.warmUp(renderer, mainCamera);
+      freshScene.warmUp(renderer, mainCamera);
       hasWarmedUp = true;
     }
   }
@@ -177,6 +178,7 @@ const main = async () => {
   await runningScene.load();
   await mainMenuScene.load();
   await characterSelectionScene.load();
+  await freshScene.load();
 
   (document.querySelector('.loading-container') as HTMLInputElement).style.display = 'none';
   currentScene.initialize();
