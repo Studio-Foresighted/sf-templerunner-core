@@ -764,7 +764,19 @@ export default class MainMenuScene extends Scene {
 
     // Start Intro Sequence
     this.startIntroSequence();
+
+    // Add click listener to skip intro (only once)
+    if (!this.hasIntroListener) {
+        window.addEventListener('mousedown', () => {
+            if (this.visible && this.introState !== 'complete') {
+                this.skipIntroSequence();
+            }
+        });
+        this.hasIntroListener = true;
+    }
   }
+
+  private hasIntroListener = false;
 
   update() {
     if (this.animationMixer) {
@@ -847,6 +859,45 @@ export default class MainMenuScene extends Scene {
           }
       });
       console.log('💡 [MainMenu] Character set to Unlit (Bright) Mode');
+  }
+
+  private skipIntroSequence() {
+      if (this.introState === 'complete') return;
+      
+      console.log('⏩ [MainMenu] Skipping Intro Sequence');
+      this.introState = 'complete';
+      
+      // 1. Finalize Cave
+      this.caveMaterials.forEach(m => m.opacity = 1);
+      
+      // 2. Finalize Character
+      if (this.activeCharacter) {
+          this.activeCharacter.visible = true;
+          this.activeCharacter.position.set(0, -35, -110);
+          this.activeCharacter.rotation.set(0, Math.PI, 0); // Face camera
+      }
+      
+      // 3. Start Idle Animation
+      this.startIdleLoop();
+      
+      // 4. Show UI
+      const menuBtns = document.querySelector('#main-menu-buttons') as HTMLElement;
+      if (menuBtns) {
+          menuBtns.style.display = 'flex';
+          menuBtns.classList.add('fade-in');
+      }
+      
+      const startStats = document.getElementById('start-screen-stats');
+      if (startStats) {
+          startStats.classList.remove('hidden');
+          startStats.classList.add('fade-in');
+      }
+      
+      const scoreBoardBtn = document.querySelector('#score-board-button') as HTMLElement;
+      if (scoreBoardBtn) scoreBoardBtn.style.display = 'block';
+      
+      const authBtn = document.querySelector('.auth-button') as HTMLElement;
+      if (authBtn) authBtn.style.display = 'block';
   }
 
   private startIntroSequence() {

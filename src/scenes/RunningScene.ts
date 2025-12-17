@@ -1365,6 +1365,12 @@ export default class RunningScene extends Scene {
     this.currentAnimation.reset();
     this.currentAnimation.play();
 
+    // Force initial mixer update to prevent T-pose/pop-in
+    if (this.animationMixer) {
+      this.animationMixer.update(0.016); // Simulate 1 frame (16ms)
+    }
+    this.player.updateMatrixWorld(true);
+
     const jumpingAnimationObject = this.jumpingAnimationsContainer[this.activePlayerIndex];
     this.jumpingAnimation = this.animationMixer.clipAction(jumpingAnimationObject.animations[0]);
 
