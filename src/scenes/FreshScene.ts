@@ -38,7 +38,7 @@ export default class FreshScene extends Scene {
   private slideAction: AnimationAction | null = null;
   private currentAction: AnimationAction | null = null;
 
-  private loaded = false;
+  public loaded = false;
 
   private woodenCaveClone = new Object3D();
   private speed = 220;

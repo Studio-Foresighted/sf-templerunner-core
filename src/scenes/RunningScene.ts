@@ -13,6 +13,8 @@ import allCharacters from '../allCharacters';
 import { IallGameCharacters } from '../types';
 
 export default class RunningScene extends Scene {
+  public loaded = false;
+
   private fbxLoader = new FBXLoader();
 
   private glbLoader = new GLTFLoader();
@@ -240,6 +242,9 @@ export default class RunningScene extends Scene {
   }
 
   async load() {
+    if (this.loaded) return;
+    this.loaded = true;
+
     const cleanAnim = (group: any) => {
       if (group.animations && group.animations.length) {
         const clip = group.animations[0];
