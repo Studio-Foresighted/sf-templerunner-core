@@ -91,7 +91,10 @@ const switchToFreshScene = async () => {
   if (!freshScene.loaded) {
       console.log('⏳ Waiting for FreshScene to finish loading...');
       const loader = document.querySelector('.loading-container') as HTMLElement;
-      if (loader) loader.style.display = 'flex';
+      if (loader) {
+          loader.style.display = 'flex';
+          loader.classList.add('fresh-mode');
+      }
 
       freshScene.showProgressInUI = true;
       await freshScene.load();
@@ -99,7 +102,10 @@ const switchToFreshScene = async () => {
       // Wait a tiny bit for the 100% bar to be seen
       await new Promise(resolve => setTimeout(resolve, 400));
 
-      if (loader) loader.style.display = 'none';
+      if (loader) {
+          loader.style.display = 'none';
+          loader.classList.remove('fresh-mode');
+      }
   }
   currentScene.hide();
   currentScene = freshScene;
