@@ -12,6 +12,8 @@ import { IallGameCharacters } from '../types';
 import { FreshObstacleManager } from './FreshObstacleManager';
 
 export default class FreshScene extends Scene {
+  public loaded = false;
+  public showProgressInUI = false;
   private fbxLoader = new FBXLoader();
   private glbLoader = new GLTFLoader();
   private obstacleManager: FreshObstacleManager;
@@ -58,6 +60,7 @@ export default class FreshScene extends Scene {
   private lightningColor = 0x00ffff; // Default Cyan
   private bluePalette = [0x00ffff, 0x0088ff, 0x0000ff, 0xaaddff];
   private yellowPalette = [0xffff00, 0xffd700, 0xffaa00, 0xffffee];
+  private turnPalette = [0xcc0000, 0xffaa00]; // Red/Orange from MainMenu
   private colorIndex = 0;
 
   private scores = 0;
@@ -91,6 +94,8 @@ export default class FreshScene extends Scene {
   private isPaused = false;
   private turnEffectTimer = 0;
 
+  private loadingPromise: Promise<void> | null = null;
+
   constructor() {
     super();
     this.obstacleManager = new FreshObstacleManager(this);
@@ -98,10 +103,14 @@ export default class FreshScene extends Scene {
 
   async load() {
     if (this.loaded) return;
-    this.loaded = true;
+    if (this.loadingPromise) return this.loadingPromise;
+
+    this.loadingPromise = (async () => {
+    this.updateLoading(5);
 
     // Load Obstacles
     this.obstacleManager.loadAssets(this.fbxLoader);
+    this.updateLoading(15);
 
     // 1. Load Environment (Cave)
     // Reuse texture logic from MainMenu or just load default
@@ -119,7 +128,7 @@ export default class FreshScene extends Scene {
     caveTexture.colorSpace = SRGBColorSpace;
     caveTexture.wrapS = RepeatWrapping;
     caveTexture.wrapT = RepeatWrapping;
-    const savedRepeat = parseFloat(localStorage.getItem('textureRepeat') || '8');
+    const savedRepeat = parseFloat(localStorage.getItem('textureRepeat') || '22.5');
     caveTexture.repeat.set(savedRepeat, savedRepeat);
 
     this.woodenCave = await this.fbxLoader.loadAsync('./assets/models/wooden-cave.fbx');
@@ -304,6 +313,20 @@ export default class FreshScene extends Scene {
     
     // Store helper for updates
     (this as any).hitboxHelper = helper;
+
+    this.updateLoading(100);
+    this.loaded = true;
+    })();
+    return this.loadingPromise;
+  }
+
+  private updateLoading(percent: number) {
+    if (!this.showProgressInUI) return;
+    const pctEl = document.querySelector('.loading-percentage') as HTMLElement;
+    if (pctEl) pctEl.innerHTML = `${percent}%`;
+    
+    const barEl = document.querySelector('#loading-bar-fill') as HTMLElement;
+    if (barEl) barEl.style.width = `${percent}%`;
   }
 
   public warmUp(renderer: WebGLRenderer, camera: PerspectiveCamera) {
@@ -1120,9 +1143,10 @@ export default class FreshScene extends Scene {
           const intensity = Math.ceil(this.turnEffectTimer * 5); 
           
           for(let i=0; i<intensity; i++) {
+               const color = this.turnPalette[Math.floor(Math.random() * this.turnPalette.length)];
                this.spawnRandomBolt(
                   this.activeCharacter.position.clone().add(new Vector3(0, 0, 0)), 
-                  15, 0.1, 2, this.lightningColor
+                  15, 0.1, 2, color
               );
           }
       }

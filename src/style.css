@@ -630,25 +630,26 @@ html, body {
 
 .loading-content {
   width: 100%;
-  max-width: 900px; /* Increased for better title fit */
   position: relative;
   padding: 0 20px; /* Safety padding */
   box-sizing: border-box;
   display: flex;
   flex-direction: column;
   align-items: center;
+  justify-content: center;
+  text-align: center;
 }
 
 .loading-title {
   font-family: 'Orbitron', 'Share Tech Mono', monospace;
-  font-size: clamp(2rem, 5vw, 5rem); /* Reduced vw to prevent overflow of long word */
+  font-size: clamp(2rem, 7vw, 6rem); /* Adjusted to 7vw for better fit across devices */
   font-weight: 900;
   letter-spacing: 0.05em;
   margin: 0 0 10px 0;
   line-height: 1;
   width: 100%;
   text-align: center;
-  white-space: nowrap; /* Keep on one line */
+  white-space: nowrap;
 }
 
 .loading-subtitle {
@@ -1520,13 +1521,5 @@ input[type="range"]::-moz-range-thumb {
   border-color: #C8102E;
   box-shadow: 0 0 15px #C8102E, inset 0 0 10px rgba(200, 16, 46, 0.5);
   transform: scale(1.1);
-}
-
-.loading-content {
-  width: 100%;
-  max-width: 800px; /* Increased width */
-  text-align: center; /* Ensure text is centered */
-  margin: 0 auto; /* Center block */
-  padding: 0 20px;
 }
 

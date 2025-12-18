@@ -77,6 +77,9 @@ export default class MainMenuScene extends Scene {
   private idleEffectActive = false;
   private idleEffectTimer = 0;
 
+  public loadingOffset = 0;
+  public loadingScale = 1;
+
 
   private async loadCaveTexture(filename: string, repeatValue?: number) {
     const textureLoader = new TextureLoader();
@@ -136,6 +139,7 @@ export default class MainMenuScene extends Scene {
   }
 
   async load() {
+    this.updateLoading(5, 'INITIALIZING CORE');
     // Fetch textures for UI and selection
     const response = await fetch('./assets/models/textures/textures.json');
     const data = await response.json();
@@ -148,6 +152,7 @@ export default class MainMenuScene extends Scene {
     }
     const caveTexture = await this.loadCaveTexture(selectedTexture!);
     this.caveTexture = caveTexture;
+    this.updateLoading(15, 'TEXTURES LOADED');
 
     this.woodenCave = await this.fbxLoader.loadAsync('./assets/models/wooden-cave.fbx');
     
@@ -170,6 +175,7 @@ export default class MainMenuScene extends Scene {
     this.woodenCave.position.set(0, 0, -500);
     this.woodenCave.scale.set(0.055, 0.055, 0.055);
     this.add(this.woodenCave);
+    this.updateLoading(35, 'ENVIRONMENT MESH LOADED');
 
     // Load Sprint Animation for Intro
     try {
@@ -193,7 +199,7 @@ export default class MainMenuScene extends Scene {
         console.warn('⚠️ [MainMenu] Failed to load warmup animation:', e);
     }
 
-    this.updateLoading(27, 'NEURAL INTERFACE CONNECTED');
+    this.updateLoading(55, 'NEURAL INTERFACE CONNECTED');
 
     const ambient = new AmbientLight(0xFFFFFF, 1.25);
     this.add(ambient);
@@ -232,17 +238,17 @@ export default class MainMenuScene extends Scene {
     this.jolleen = await this.fbxLoader.loadAsync(this.allGameCharacters[2].model);
     this.peasantGirl = await this.fbxLoader.loadAsync(this.allGameCharacters[3].model);
 
-    this.updateLoading(32, 'CITY MESH LOADED');
+    this.updateLoading(75, 'CITY MESH LOADED');
 
     this.jolleenAnimation = await this.fbxLoader
       .loadAsync(this.allGameCharacters[2].danceAnimation);
 
-    this.updateLoading(39, 'AUDIO SYSTEMS ONLINE');
+    this.updateLoading(85, 'AUDIO SYSTEMS ONLINE');
 
     this.peasantGirlAnimation = await this.fbxLoader
       .loadAsync(this.allGameCharacters[3].danceAnimation);
 
-    this.updateLoading(42, 'READY TO RUN');
+    this.updateLoading(95, 'READY TO RUN');
 
     this.xbot.visible = false;
     this.jolleen.visible = false;
@@ -263,15 +269,17 @@ export default class MainMenuScene extends Scene {
     this.add(this.jolleen);
     this.add(this.peasantGirl);
 
+    this.updateLoading(100, 'SYSTEMS STABILIZED');
     this.hide();
   }
 
   private updateLoading(percent: number, checkText?: string) {
+    const finalPercent = Math.min(100, Math.round(this.loadingOffset + (percent * this.loadingScale)));
     const pctEl = document.querySelector('.loading-percentage') as HTMLElement;
-    if (pctEl) pctEl.innerHTML = `${percent}%`;
+    if (pctEl) pctEl.innerHTML = `${finalPercent}%`;
     
     const barEl = document.querySelector('#loading-bar-fill') as HTMLElement;
-    if (barEl) barEl.style.width = `${percent}%`;
+    if (barEl) barEl.style.width = `${finalPercent}%`;
     
     if (checkText) {
        const container = document.getElementById('system-checks');

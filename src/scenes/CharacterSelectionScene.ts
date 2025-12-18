@@ -11,6 +11,9 @@ import allCharacters from '../allCharacters';
 import { IallGameCharacters } from '../types';
 
 export default class CharacterSelectionScene extends Scene {
+  public loaded = false;
+  public showProgressInUI = false;
+  private loadingPromise: Promise<void> | null = null;
   private fbxLoader = new FBXLoader();
 
   private woodenCave = new Object3D();
@@ -48,6 +51,7 @@ export default class CharacterSelectionScene extends Scene {
   private activeIndexNumber = 0;
 
   private updateLoading(percent: number) {
+    if (!this.showProgressInUI) return;
     const pctEl = document.querySelector('.loading-percentage') as HTMLElement;
     if (pctEl) pctEl.innerHTML = `${percent}%`;
     
@@ -56,6 +60,10 @@ export default class CharacterSelectionScene extends Scene {
   }
 
   async load() {
+    if (this.loaded) return;
+    if (this.loadingPromise) return this.loadingPromise;
+
+    this.loadingPromise = (async () => {
     this.woodenCave = await this.fbxLoader.loadAsync('./assets/models/wooden-cave.fbx');
     this.woodenCave.position.set(0, 0, -500);
     this.woodenCave.scale.set(0.055, 0.055, 0.055);
@@ -95,10 +103,10 @@ export default class CharacterSelectionScene extends Scene {
     this.jolleenAnimation = await this.fbxLoader.loadAsync(this.allGameCharacters[2]
       .danceAnimation);
 
-    this.updateLoading(100);
-
     this.peasantGirlAnimation = await this.fbxLoader.loadAsync(this.allGameCharacters[3]
       .danceAnimation);
+
+    this.updateLoading(100);
 
     this.xbot.visible = false;
     this.jolleen.visible = false;
@@ -116,6 +124,9 @@ export default class CharacterSelectionScene extends Scene {
     );
 
     this.hide();
+    this.loaded = true;
+    })();
+    return this.loadingPromise;
   }
 
   private nextCharacter() {

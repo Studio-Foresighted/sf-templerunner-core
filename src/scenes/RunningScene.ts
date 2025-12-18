@@ -15,6 +15,12 @@ import { IallGameCharacters } from '../types';
 export default class RunningScene extends Scene {
   public loaded = false;
 
+  public showProgressInUI = false;
+  public loadingOffset = 0;
+  public loadingScale = 1;
+
+  private loadingPromise: Promise<void> | null = null;
+
   private fbxLoader = new FBXLoader();
 
   private glbLoader = new GLTFLoader();
@@ -197,11 +203,15 @@ export default class RunningScene extends Scene {
   private availableGlbFiles = ['character.glb', 'run.glb', 'jump.glb', 'slide.glb', 'stumble.glb', 'D7M3GLJGZXPBHJZBUQ2G0G5N0.glb']; // Defaults from 2025 folder
 
   private updateLoading(percent: number) {
+    if (!this.showProgressInUI) return;
+
+    const scaledPercent = Math.min(100, Math.round(this.loadingOffset + (percent * this.loadingScale)));
+
     const pctEl = document.querySelector('.loading-percentage') as HTMLElement;
-    if (pctEl) pctEl.innerHTML = `${percent}%`;
+    if (pctEl) pctEl.innerHTML = `${scaledPercent}%`;
     
     const barEl = document.querySelector('#loading-bar-fill') as HTMLElement;
-    if (barEl) barEl.style.width = `${percent}%`;
+    if (barEl) barEl.style.width = `${scaledPercent}%`;
   }
 
   private async loadCaveTexture(filename: string, repeatValue?: number) {
@@ -243,7 +253,10 @@ export default class RunningScene extends Scene {
 
   async load() {
     if (this.loaded) return;
-    this.loaded = true;
+    if (this.loadingPromise) return this.loadingPromise;
+
+    this.loadingPromise = (async () => {
+    this.updateLoading(5);
 
     const cleanAnim = (group: any) => {
       if (group.animations && group.animations.length) {
@@ -314,7 +327,7 @@ export default class RunningScene extends Scene {
     this.woodenCave.position.set(0, 0, -500);
     this.woodenCave.scale.set(0.055, 0.055, 0.055);
     this.add(this.woodenCave);
-    this.updateLoading(5);
+    this.updateLoading(10);
 
     this.woodenCaveClone = this.woodenCave.clone();
     // Clone shares material and geometry, so no need to re-apply traversal
@@ -327,7 +340,7 @@ export default class RunningScene extends Scene {
     this.barrelObject = await this.fbxLoader.loadAsync('../../assets/models/barrel.fbx');
     this.boxObject = await this.fbxLoader.loadAsync('../../assets/models/box.fbx');
     this.spikeObject = await this.fbxLoader.loadAsync('../../assets/models/spike.fbx');
-    this.updateLoading(10);
+    this.updateLoading(30);
     this.createLeftJumpObstacle();
 
     this.createLeftJumpObstacle();
@@ -352,7 +365,7 @@ export default class RunningScene extends Scene {
 
     this.coinObject = await this.fbxLoader.loadAsync('../../assets/models/coin.fbx');
     this.coinObject.rotation.set(90 * (Math.PI / 180), 0, 150 * (Math.PI / 180));
-    this.updateLoading(12);
+    this.updateLoading(45);
     this.generateLeftCenterRightCoins();
 
     this.generateLeftSideCoin();
@@ -821,19 +834,19 @@ export default class RunningScene extends Scene {
       runAnimWrapper.animations = [runClip];
       cleanAnim(runAnimWrapper);
       this.xbotRunningAnimation = runAnimWrapper as any;
-      this.updateLoading(14);
+      this.updateLoading(60);
       
       const jumpAnimWrapper = new Object3D();
       jumpAnimWrapper.animations = [jumpClip];
       cleanAnim(jumpAnimWrapper);
       this.xbotJumpingAnimation = jumpAnimWrapper as any;
-      this.updateLoading(15);
+      this.updateLoading(65);
       
       const slideAnimWrapper = new Object3D();
       slideAnimWrapper.animations = [slideClip];
       cleanAnim(slideAnimWrapper);
       this.xbotSlidingAnimation = slideAnimWrapper as any;
-      this.updateLoading(16);
+      this.updateLoading(70);
       
       const stumbleAnimWrapper = new Object3D();
       stumbleAnimWrapper.animations = [stumbleClip];
@@ -874,42 +887,42 @@ export default class RunningScene extends Scene {
       .jumpAnimation);
     cleanAnim(this.jolleenJumpingAnimation);
 
-    this.updateLoading(19);
+    this.updateLoading(85);
 
     this.jolleenSlidingAnimation = await this.fbxLoader.loadAsync(this.allGameCharacters[2]
       .slideAnimation);
     cleanAnim(this.jolleenSlidingAnimation);
 
-    this.updateLoading(20);
+    this.updateLoading(90);
 
     this.jolleenStumbleAnimation = await this.fbxLoader.loadAsync(this.allGameCharacters[2]
       .stumbleAnimation);
     cleanAnim(this.jolleenStumbleAnimation);
 
-    this.updateLoading(21);
+    this.updateLoading(95);
 
     this.peasantGirl = await this.fbxLoader.loadAsync(this.allGameCharacters[3].model);
     this.peasantGirlRunningAnimation = await this.fbxLoader.loadAsync(this.allGameCharacters[3]
       .runAnimation);
     cleanAnim(this.peasantGirlRunningAnimation);
-    this.updateLoading(22);
+    this.updateLoading(98);
 
     this.peasantGirlJumpingAnimation = await this.fbxLoader.loadAsync(this.allGameCharacters[3]
       .jumpAnimation);
     cleanAnim(this.peasantGirlJumpingAnimation);
 
-    this.updateLoading(23);
+    this.updateLoading(99);
 
     this.peasantGirlSlidingAnimation = await this.fbxLoader.loadAsync(this.allGameCharacters[3]
       .slideAnimation);
     cleanAnim(this.peasantGirlSlidingAnimation);
 
-    this.updateLoading(24);
+    this.updateLoading(100);
 
     this.peasantGirlStumbleAnimation = await this.fbxLoader.loadAsync(this.allGameCharacters[3]
       .stumbleAnimation);
     cleanAnim(this.peasantGirlStumbleAnimation);
-    this.updateLoading(25);
+    this.updateLoading(100);
     this.xbot.visible = false;
     this.jolleen.visible = false;
     this.peasantGirl.visible = false;
@@ -940,6 +953,9 @@ export default class RunningScene extends Scene {
       this.jolleenStumbleAnimation,
       this.peasantGirlStumbleAnimation,
     );
+    this.loaded = true;
+    })();
+    return this.loadingPromise;
   }
 
   public warmUp(renderer: WebGLRenderer, camera: PerspectiveCamera) {

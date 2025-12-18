@@ -45,7 +45,16 @@ const switchToRunningScene = async () => {
   // Ensure loaded before switching
   if (!runningScene.loaded) {
       console.log('⏳ Waiting for RunningScene to finish loading...');
+      const loader = document.querySelector('.loading-container') as HTMLElement;
+      if (loader) loader.style.display = 'flex';
+      
+      runningScene.showProgressInUI = true;
       await runningScene.load(); 
+      
+      // Wait a tiny bit for the 100% bar to be seen
+      await new Promise(resolve => setTimeout(resolve, 400));
+      
+      if (loader) loader.style.display = 'none';
   }
   currentScene.hide();
   currentScene = runningScene;
@@ -62,7 +71,17 @@ const switchToMainMenuScene = () => {
   if (exitFsBtn) exitFsBtn.style.display = 'none';
 };
 
-const switchToCharacterSelectionScene = () => {
+const switchToCharacterSelectionScene = async () => {
+  if (!characterSelectionScene.loaded) {
+      const loader = document.querySelector('.loading-container') as HTMLElement;
+      if (loader) loader.style.display = 'flex';
+      
+      characterSelectionScene.showProgressInUI = true;
+      await characterSelectionScene.load();
+      
+      await new Promise(resolve => setTimeout(resolve, 400));
+      if (loader) loader.style.display = 'none';
+  }
   currentScene.hide();
   currentScene = characterSelectionScene;
   currentScene.initialize();
@@ -71,7 +90,16 @@ const switchToCharacterSelectionScene = () => {
 const switchToFreshScene = async () => {
   if (!freshScene.loaded) {
       console.log('⏳ Waiting for FreshScene to finish loading...');
+      const loader = document.querySelector('.loading-container') as HTMLElement;
+      if (loader) loader.style.display = 'flex';
+
+      freshScene.showProgressInUI = true;
       await freshScene.load();
+
+      // Wait a tiny bit for the 100% bar to be seen
+      await new Promise(resolve => setTimeout(resolve, 400));
+
+      if (loader) loader.style.display = 'none';
   }
   currentScene.hide();
   currentScene = freshScene;
@@ -148,19 +176,6 @@ const render = (time: number = 0) => {
   // TWEEN.update(time); // Moved to scene update for better control
   renderer.render(currentScene, mainCamera);
 
-  // Background loading: Warm up the running scene while on the main menu
-  if (currentScene === mainMenuScene && !hasWarmedUp) {
-    warmUpFrame++;
-    // Wait ~30 frames (0.5s) to let the menu transition finish smoothly
-    if (warmUpFrame === 30) {
-      console.log('⏳ Triggering background warm-up for RunningScene & FreshScene...');
-      // This might cause a slight stutter, but it prevents the pop-in later
-      runningScene.warmUp(renderer, mainCamera);
-      freshScene.warmUp(renderer, mainCamera);
-      hasWarmedUp = true;
-    }
-  }
-
   requestAnimationFrame(render);
 };
 
@@ -184,18 +199,45 @@ window.addEventListener('returnToMainMenu', () => {
 });
 
 const main = async () => {
-  // 1. Load Main Menu (Critical)
-  await mainMenuScene.load();
+  // 1. Configure Split Loading
+  // Main Menu takes 0% -> 50%
+  mainMenuScene.loadingOffset = 0;
+  mainMenuScene.loadingScale = 0.5;
   
-  // 2. Start loading others in background (Non-blocking)
-  runningScene.load();
-  characterSelectionScene.load();
-  freshScene.load();
+  // Running Scene takes 50% -> 100%
+  runningScene.loadingOffset = 50;
+  runningScene.loadingScale = 0.5;
+  runningScene.showProgressInUI = true;
 
-  // 3. Hide Loader immediately
+  // 2. Load Both (Sequentially to ensure bar is smooth)
+  await mainMenuScene.load();
+  await runningScene.load();
+  
+  // 3. Wait a tiny bit for the 100% bar to be seen
+  await new Promise(resolve => setTimeout(resolve, 400));
+
+  // 4. Hide Loader immediately
   (document.querySelector('.loading-container') as HTMLInputElement).style.display = 'none';
   currentScene.initialize();
   render();
+
+  // 5. Start loading others in background (Delayed & Sequenced)
+  startBackgroundLoading();
+};
+
+const startBackgroundLoading = async () => {
+    // Wait 3 seconds for initial smooth experience (Intro Animation)
+    await new Promise(resolve => setTimeout(resolve, 3000));
+
+    // RunningScene is already loaded in main()
+
+    // Removed FreshScene and CharacterSelectionScene background loading to prevent Main Menu lag.
+    // They will load on-demand when the user clicks their respective buttons.
+
+    console.log('✅ Background loading complete. Triggering WarmUp.');
+    
+    // Now trigger warmUp to prevent pop-in
+    runningScene.warmUp(renderer, mainCamera);
 };
 
 main();
