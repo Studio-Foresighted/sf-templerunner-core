@@ -40,8 +40,6 @@ export default class FreshScene extends Scene {
   private slideAction: AnimationAction | null = null;
   private currentAction: AnimationAction | null = null;
 
-  public loaded = false;
-
   private woodenCaveClone = new Object3D();
   private speed = 220;
   private caveSize = 3000; // Approximate size, need to verify
